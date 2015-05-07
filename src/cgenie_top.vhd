@@ -88,6 +88,7 @@ architecture RTL of CGENIE_TOP is
   signal sigFF_enable: std_logic;
   signal sigZ25      : std_logic_vector(5 downto 0);
   signal clkZ25      : std_logic;
+  signal srout_n     : std_logic;
 
 
 
@@ -279,6 +280,22 @@ begin
   char_do <= pcram_do when crom_enable = '0' else crom_do;
     
   pcram_wr_en <= (not cpu_wr_n) and pcg_enable;
+  
+  -- signal /SROUT
+  process(qaclk)
+    variable shift_reg : std_logic_vector(7 downto 0);
+  begin
+    if sigZ25(5) = '0' then
+      shift_reg := (others=>'0');
+    elsif rising_edge(qaclk) then
+      if strobesl = '0' then
+        shift_reg := char_do;
+      else
+        shift_reg := shift_reg(6 downto 0) & '0';
+      end if;
+      srout_n <= shift_reg(7);
+    end if;
+  end process;
     
   -- Colour RAM
   colour_ram : entity work.spram
